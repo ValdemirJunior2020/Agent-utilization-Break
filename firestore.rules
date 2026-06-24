@@ -1,0 +1,85 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function profile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isSuperAdmin() {
+      return signedIn() && profile().role == 'superAdmin';
+    }
+
+    function isCallCenterAdmin() {
+      return signedIn() && profile().role == 'callCenterAdmin';
+    }
+
+    function isViewer() {
+      return signedIn() && profile().role == 'viewer';
+    }
+
+    function userCallCenterId() {
+      return profile().callCenterId;
+    }
+
+    function sameCenter(callCenterId) {
+      return signedIn() && callCenterId == userCallCenterId();
+    }
+
+    function canReadCenter(callCenterId) {
+      return isSuperAdmin() || sameCenter(callCenterId);
+    }
+
+    function canWriteCenter(callCenterId) {
+      return isSuperAdmin() || (isCallCenterAdmin() && sameCenter(callCenterId));
+    }
+
+    match /users/{userId} {
+      allow read: if isSuperAdmin() || (signedIn() && request.auth.uid == userId);
+      allow create, update: if isSuperAdmin();
+      allow delete: if false;
+    }
+
+    match /callCenters/{centerId} {
+      allow read: if signedIn();
+      allow create, update: if isSuperAdmin();
+      allow delete: if false;
+    }
+
+    match /settings/{settingId} {
+      allow read: if signedIn();
+      allow create, update: if isSuperAdmin();
+      allow delete: if false;
+    }
+
+    match /uploads/{uploadId} {
+      allow read: if canReadCenter(resource.data.callCenterId);
+      allow create: if canWriteCenter(request.resource.data.callCenterId);
+      allow update: if canWriteCenter(resource.data.callCenterId) && request.resource.data.callCenterId == resource.data.callCenterId;
+      allow delete: if false;
+    }
+
+    match /breakRecords/{recordId} {
+      allow read: if canReadCenter(resource.data.callCenterId);
+      allow create: if canWriteCenter(request.resource.data.callCenterId);
+      allow update: if canWriteCenter(resource.data.callCenterId) && request.resource.data.callCenterId == resource.data.callCenterId;
+      allow delete: if false;
+    }
+
+    match /auditLogs/{logId} {
+      allow read: if isSuperAdmin() || canReadCenter(resource.data.callCenterId);
+      allow create: if signedIn();
+      allow update, delete: if false;
+    }
+
+    match /appVisits/{visitId} {
+      allow read: if isSuperAdmin();
+      allow create: if signedIn();
+      allow update: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow delete: if false;
+    }
+  }
+}

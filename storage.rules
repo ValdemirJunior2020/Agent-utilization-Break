@@ -1,0 +1,31 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function profile() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isSuperAdmin() {
+      return signedIn() && profile().role == 'superAdmin';
+    }
+
+    function isCallCenterAdmin() {
+      return signedIn() && profile().role == 'callCenterAdmin';
+    }
+
+    function canUpload(centerId) {
+      return isSuperAdmin() || (isCallCenterAdmin() && profile().callCenterId == centerId);
+    }
+
+    match /uploads/{centerId}/{allPaths=**} {
+      allow read: if isSuperAdmin() || (signedIn() && profile().callCenterId == centerId);
+      allow write: if canUpload(centerId)
+        && request.resource.size < 20 * 1024 * 1024
+        && request.resource.contentType.matches('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet|application/octet-stream');
+    }
+  }
+}
