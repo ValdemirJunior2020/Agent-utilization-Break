@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { BarChart3, Clock3, FileSpreadsheet, History, LayoutDashboard, Recycle, Settings, Shield, Upload, Users, Building2 } from 'lucide-react';
+import { BarChart3, Clock3, History, LayoutDashboard, Recycle, Settings, Shield, Upload, Users, Building2 } from 'lucide-react';
 import clsx from 'clsx';
 import type { AppUser } from '../../types';
 

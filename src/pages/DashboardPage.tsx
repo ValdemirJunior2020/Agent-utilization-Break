@@ -11,7 +11,7 @@ import { StatCard } from '../components/ui/StatCard';
 import { PageLoader } from '../components/ui/Skeleton';
 import { Button } from '../components/ui/Button';
 import { Select } from '../components/ui/Input';
-import { formatDate, formatDateRange, formatDateTime } from '../utils/dates';
+import { RangeTime } from '../utils/dates';
 import { minutesToHoursMinutes } from '../utils/format';
 import { StatusBadge } from '../components/ui/Badge';
 
@@ -232,8 +232,8 @@ export function DashboardPage() {
             {uploads.map((upload) => (
               <div key={upload.id} className="rounded-2xl border border-slate-100 p-3">
                 <p className="truncate font-black text-slate-950">{upload.fileName}</p>
-                <p className="text-xs text-slate-500">{upload.callCenterName} · {formatDateRange(upload.reportStartDate || upload.reportDate, upload.reportEndDate || upload.reportDate)}</p>
-                <p className="mt-1 text-xs text-slate-500">Uploaded {formatDateTime(upload.uploadedAt)} by {upload.uploadedByName}</p>
+                <p className="text-xs text-slate-500">{upload.callCenterName} · {Range(upload.reportStartDate || upload.reportDate, upload.reportEndDate || upload.reportDate)}</p>
+                <p className="mt-1 text-xs text-slate-500">Uploaded {Time(upload.uploadedAt)} by {upload.uploadedByName}</p>
                 <p className="mt-2 text-xs font-semibold text-slate-600">{upload.totalRows} rows · {upload.totalFlagged} flagged · {upload.totalCritical} critical</p>
               </div>
             ))}
@@ -249,7 +249,7 @@ export function DashboardPage() {
                   <p className="font-black capitalize text-slate-950">{log.actionType.replaceAll('_', ' ')}</p>
                   {log.callCenterName && <StatusBadge status={log.actionType.includes('delete') ? 'critical' : 'good'} />}
                 </div>
-                <p className="text-xs text-slate-500">{formatDateTime(log.createdAt)} · {log.userName}</p>
+                <p className="text-xs text-slate-500">{Time(log.createdAt)} · {log.userName}</p>
                 <p className="mt-1 text-xs text-slate-600">{log.description}</p>
               </div>
             ))}
