@@ -5,6 +5,7 @@ export type BreakStatus = 'good' | 'warning' | 'critical';
 export type AuditAction =
   | 'login'
   | 'file_uploaded'
+  | 'upload_superseded'
   | 'record_created'
   | 'record_updated'
   | 'record_bulk_updated'
@@ -83,7 +84,12 @@ export interface BreakRecord extends ParsedBreakRecordInput {
   deletedBy?: string;
   deletedByName?: string;
   deletedAt?: Timestamp;
+  deleteReason?: string | null;
+  superseded?: boolean;
+  supersededByUploadId?: string | null;
+  supersededAt?: Timestamp | null;
 }
+
 
 export interface UploadBatch {
   id: string;
@@ -103,7 +109,12 @@ export interface UploadBatch {
   uploadedByName: string;
   uploadedAt?: Timestamp;
   parserMode: 'summary' | 'tableauHourly' | 'mixed';
+  status?: 'active' | 'superseded';
+  superseded?: boolean;
+  supersededByUploadId?: string | null;
+  supersededAt?: Timestamp | null;
 }
+
 
 export interface AuditLog {
   id: string;

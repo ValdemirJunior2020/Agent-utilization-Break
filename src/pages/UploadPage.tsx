@@ -22,6 +22,7 @@ export function UploadPage() {
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [replaceOverlappingDates, setReplaceOverlappingDates] = useState(true);
 
   const selectedCenter = useMemo(() => CALL_CENTERS.find((center) => center.id === callCenterId)!, [callCenterId]);
   const uploadAllowed = canUploadForCenter(profile, callCenterId);
@@ -73,10 +74,14 @@ export function UploadPage() {
         reportStartDate: period.reportStartDate,
         reportEndDate: period.reportEndDate,
         actor: profile,
+        replaceOverlappingDates,
         onProgress: setProgress,
       });
       setParseResult(result);
-      setMessage(`Upload complete for ${formatDateRange(period.reportStartDate, period.reportEndDate)}: ${result.records.length} records saved, ${result.totalFlagged} above 60 minutes, ${result.totalCritical} critical.`);
+      const supersededMessage = replaceOverlappingDates
+        ? ` Superseded ${result.supersededRecordCount} older overlapping record(s) and ${result.supersededUploadCount} previous upload(s).`
+        : ' Older overlapping records were kept because append mode was selected.';
+      setMessage(`Upload complete for ${formatDateRange(period.reportStartDate, period.reportEndDate)}: ${result.records.length} records saved, ${result.totalFlagged} above 60 minutes, ${result.totalCritical} critical.${supersededMessage}`);
       setFile(null);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Upload failed.');
@@ -131,6 +136,24 @@ export function UploadPage() {
               </div>
             </div>
             {periodInvalid && <p className="mt-3 text-sm font-bold text-red-700">Start date cannot be after end date.</p>}
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+            <label className="flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                checked={replaceOverlappingDates}
+                onChange={(event) => setReplaceOverlappingDates(event.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-slate-300"
+              />
+              <span>
+                <span className="block text-sm font-black text-slate-950">Replace overlapping dates for this call center</span>
+                <span className="mt-1 block text-sm text-slate-600">
+                  Recommended. If you upload a 30-day report that includes an existing 7-day or 1-day report,
+                  the older overlapping records are soft-deleted as superseded so the dashboard does not double count agents.
+                </span>
+              </span>
+            </label>
           </div>
 
           <div className="mt-6 rounded-3xl border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-center">
@@ -194,7 +217,7 @@ export function UploadPage() {
 
           <div className="mt-6 rounded-2xl bg-amber-50 p-4 text-sm text-amber-800">
             <div className="mb-2 flex items-center gap-2 font-black"><AlertTriangle size={18} /> Date requirement</div>
-            Select the exact start and end date for every upload. A 7-day file can be saved as 06/16/2026 - 06/23/2026, while a 1-day file can use the same start and end date.
+            Select the exact start and end date for every upload. A 7-day file can be saved as 06/16/2026 - 06/23/2026, while a 1-day file can use the same start and end date. Keep replace-overlap enabled to prevent duplicated counts when a longer report includes shorter reports already uploaded.
           </div>
         </section>
       </div>
