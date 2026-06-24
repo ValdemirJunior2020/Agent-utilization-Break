@@ -27,13 +27,13 @@
   },
   "devDependencies": {
     "@eslint/js": "latest",
-    "@types/node": "latest",
+    "@types/node": "^26.0.0",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "eslint": "latest",
     "eslint-plugin-react-hooks": "latest",
     "eslint-plugin-react-refresh": "latest",
-    "typescript": "latest",
+    "typescript": "^6.0.3",
     "vite": "latest"
   }
 }
